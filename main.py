@@ -1,106 +1,74 @@
 import streamlit as st
+import random
+import hashlib
+import urllib.parse
+from textwrap import dedent
 
-# 페이지 설정
-st.set_page_config(page_title="MBTI → 짱구 캐릭터 추천", page_icon="🐻", layout="centered")
+# =============================
+# 🧩 페이지 기본 설정
+# =============================
+st.set_page_config(
+    page_title="MBTI → 연예인 추천", 
+    page_icon="🌈", 
+    layout="centered"
+)
 
-# MBTI → 캐릭터 데이터
-mbti_characters = {
-    "ENFP": {
-        "name": "짱구 🐻",
-        "desc": "엉뚱하고 장난기 많은 에너자이저! 호기심 대마왕 🔥",
-        "img": "https://i.ibb.co/zsW5vZW/shinchan.png",
-        "color": "#FFD93D"
-    },
-    "INTJ": {
-        "name": "철수 📚",
-        "desc": "계획적이고 이성적인 전략가! 똑똑한 두뇌파 🧠",
-        "img": "https://i.ibb.co/h9mYpSS/cheolsu.png",
-        "color": "#6BCB77"
-    },
-    "ISFJ": {
-        "name": "유리 🌸",
-        "desc": "다정다감하고 배려심 많은 친구! 친구 사랑 1등 🥰",
-        "img": "https://i.ibb.co/JjdnzQk/yuri.png",
-        "color": "#FF6F91"
-    },
-    "ESTP": {
-        "name": "훈이 😎",
-        "desc": "활발하고 사교적인 분위기 메이커! 장난도 잘 치는 스타일 😂",
-        "img": "https://i.ibb.co/4NnTrM4/huni.png",
-        "color": "#4D96FF"
-    },
-    "INFP": {
-        "name": "맹구 🪨",
-        "desc": "순수하고 독특한 매력을 가진 예술가 타입 🎨",
-        "img": "https://i.ibb.co/RCSXHkq/maenggu.png",
-        "color": "#845EC2"
-    },
-    "ENTJ": {
-        "name": "신형만 👔",
-        "desc": "책임감 있고 추진력 넘치는 가장! 하지만 라면도 좋아함 🍜",
-        "img": "https://i.ibb.co/tqfPMS3/shinhyungman.png",
-        "color": "#FF9671"
-    },
-    "ESFJ": {
-        "name": "봉미선 👜",
-        "desc": "다정하고 현실적인 주부! 가족 사랑 최고 💖",
-        "img": "https://i.ibb.co/gJYbZJQ/bongmison.png",
-        "color": "#FFC75F"
-    }
-}
+# =============================
+# 🎨 글로벌 스타일 (CSS)
+#  - 알록달록 그라데이션 배경 + 카드 스타일 + 이모지
+# =============================
+st.markdown(
+    dedent(
+        """
+        <style>
+        @keyframes gradientMove {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .stApp {
+          background: linear-gradient(135deg, #FFDEE9, #B5FFFC, #FFE7A1, #D4FFEA);
+          background-size: 400% 400%;
+          animation: gradientMove 18s ease infinite;
+        }
+        .mega-title {
+          font-size: 46px; text-align:center; font-weight: 900; color:#ff4d94;
+          text-shadow: 0 2px 10px rgba(255,77,148,.25); letter-spacing:.5px;
+        }
+        .sub-txt { text-align:center; font-size:15px; opacity:.9; }
+        .card {
+          padding: 18px; border-radius: 22px; text-align: center; margin: 10px 0;
+          box-shadow: 0 10px 25px rgba(0,0,0,.12); border: 2px solid rgba(255,255,255,.6);
+        }
+        .name { font-size: 22px; font-weight: 800; margin-top: 10px; }
+        .desc { font-size: 15px; opacity:.95; }
+        .tag { display:inline-block; padding:6px 10px; border-radius:12px; background:rgba(255,255,255,.75); margin:4px; font-size:13px; }
+        .footer { text-align:center; font-size:13px; opacity:.75; margin-top: 18px; }
+        .search-btn a{ text-decoration:none; font-weight:700; }
+        </style>
+        """
+    ),
+    unsafe_allow_html=True,
+)
 
-# 스타일 (CSS)
-st.markdown("""
-    <style>
-    body {
-        background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%);
-    }
-    .title {
-        font-size: 40px;
-        text-align: center;
-        font-weight: bold;
-        color: #FF6F91;
-        text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
-    }
-    .char-card {
-        padding: 20px;
-        border-radius: 20px;
-        text-align: center;
-        margin-top: 20px;
-        box-shadow: 4px 4px 12px rgba(0,0,0,0.15);
-    }
-    .char-name {
-        font-size: 28px;
-        font-weight: bold;
-        margin-top: 10px;
-    }
-    .char-desc {
-        font-size: 18px;
-        margin-top: 5px;
-    }
-    img {
-        border-radius: 15px;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# 제목
-st.markdown("<div class='title'>🌈 MBTI로 알아보는 짱구 캐릭터 추천 🐻</div>", unsafe_allow_html=True)
-st.write("")
-
-# MBTI 선택
-selected_mbti = st.selectbox("✨ 당신의 MBTI를 선택하세요", list(mbti_characters.keys()))
-
-# 결과 출력
-if selected_mbti:
-    char = mbti_characters[selected_mbti]
-    st.markdown(
-        f"""
-        <div class='char-card' style='background-color:{char["color"]};'>
-            <img src="{char['img']}" width="200">
-            <div class='char-name'>{char['name']}</div>
-            <div class='char-desc'>{char['desc']}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+# =============================
+# 🧠 MBTI → 연예인 후보 (16 타입, 3인씩)
+#  - 실제 MBTI와 정확히 일치한다고 단정하지 않으며, "분위기가 어울리는" 예시입니다.
+#  - 이미지 핫링크 실패 문제를 피하기 위해, 기본은 파스텔 SVG 아바타를 사용합니다.
+#  - 각 이름을 클릭/버튼으로 웹 검색해 실제 사진을 확인할 수 있습니다.
+# =============================
+MBTI_CELEBS = {
+    "ISTJ": ["전지현", "공유", "한석규"],
+    "ISFJ": ["수지", "도경수", "김유정"],
+    "INFJ": ["아이유", "유아인", "이정재"],
+    "INTJ": ["윤여정", "송강호", "이병헌"],
+    "ISTP": ["정해인", "김우빈", "최민식"],
+    "ISFP": ["김태리", "박보검", "한지민"],
+    "INFP": ["박은빈", "임시완", "수현(스카라렛 요한슨)"],
+    "INTP": ["남주혁", "류준열", "유재석"],
+    "ESTP": ["김종국", "제니", "민호(샤이니)"],
+    "ESFP": ["유나(ITZY)", "조이(레드벨벳)", "문빈"],
+    "ENFP": ["박보영", "차은우", "피오"],
+    "ENTP": ["양세형", "은지원", "유연석"],
+    "ESTJ": ["김희애", "진(방탄소년단)", "김연아"],
+    "ESFJ": ["이효리", "강다니엘", "박
