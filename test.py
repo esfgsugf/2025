@@ -1,13 +1,22 @@
 import streamlit as st
 from PIL import Image
 
+st.set_page_config(page_title="맞춤형 스킨케어 추천", layout="centered")
 st.title("📸 맞춤형 스킨케어 추천 앱")
 
-# 세션 상태 초기화
+# --- 세션 상태 초기화 ---
 if "page" not in st.session_state:
     st.session_state.page = "input"
+if "skin_status" not in st.session_state:
+    st.session_state.skin_status = ""
+if "image" not in st.session_state:
+    st.session_state.image = None
+if "additional_info" not in st.session_state:
+    st.session_state.additional_info = ""
+if "skin_type" not in st.session_state:
+    st.session_state.skin_type = ""
 
-# 제품 데이터 예시
+# --- 제품 데이터 ---
 product_info = {
     "라로슈포제 시카 토너": {
         "link": "https://www.oliveyoung.co.kr/product?pid=example1",
@@ -41,18 +50,18 @@ if st.session_state.page == "input":
     skin_type = st.selectbox("내 피부 타입을 선택하세요", ["건성", "지성", "복합성", "민감성"])
     additional_info = st.text_area("추가로 알려주고 싶은 피부 고민이나 민감 부위", placeholder="예: 왼쪽 볼 예민, 턱 좁쌀 여드름")
     uploaded_file = st.file_uploader("피부 사진을 업로드하세요 (선택)", type=["jpg", "png", "jpeg"])
-    
+
+    # 버튼 클릭 시 세션 상태 저장 후 페이지 전환
     if st.button("AI 피부 분석 & 추천"):
-        if uploaded_file is not None:
-            image = Image.open(uploaded_file)
-            st.session_state.skin_status = "건조 + 각질 + 일부 붉은기"
-            st.session_state.image = image
-        else:
-            st.session_state.skin_status = "입력 정보 기반 예시 분석"
-            st.session_state.image = None
-        
-        st.session_state.additional_info = additional_info
         st.session_state.skin_type = skin_type
+        st.session_state.additional_info = additional_info
+        if uploaded_file is not None:
+            st.session_state.image = Image.open(uploaded_file)
+            st.session_state.skin_status = "건조 + 각질 + 일부 붉은기"  # 실제 AI 분석 결과로 대체 가능
+        else:
+            st.session_state.image = None
+            st.session_state.skin_status = "입력 정보 기반 예시 분석"
+        
         st.session_state.page = "result"
         st.experimental_rerun()
 
