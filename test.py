@@ -34,11 +34,4 @@ product_info = {
         "caution": "과다 사용 시 끈적임 발생"
     },
     "아벤느 시칼파트 크림": {
-        "link": "https://www.oliveyoung.co.kr/product?pid=example4",
-        "usage": "건조 부위 중심으로 사용, 1~2개월 사용 가능",
-        "caution": "눈가 직접 사용 주의"
-    },
-    "약국 연고": {
-        "link": "https://www.oliveyoung.co.kr/product?pid=example5",
-        "usage": "트러블 부위 점사용",
-        "caution": "장기간 사용 시 피부
+        "link": "https://www.oliv
