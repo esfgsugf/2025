@@ -23,15 +23,3 @@ product_info = {
         "usage": "아침/저녁 사용, 2~3개월 사용 가능",
         "caution": "민감 피부는 패치 테스트 권장"
     },
-    "닥터자르트 시카페어 크림": {
-        "link": "https://www.oliveyoung.co.kr/product?pid=example2",
-        "usage": "아침/저녁, 소량 사용",
-        "caution": "상처 난 부위 직접 사용 주의"
-    },
-    "라네즈 크림스킨 토너": {
-        "link": "https://www.oliveyoung.co.kr/product?pid=example3",
-        "usage": "아침/저녁, 화장솜에 적당량 사용",
-        "caution": "과다 사용 시 끈적임 발생"
-    },
-    "아벤느 시칼파트 크림": {
-        "link": "https://www.oliv
