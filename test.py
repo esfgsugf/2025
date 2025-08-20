@@ -3,37 +3,85 @@ from PIL import Image
 
 st.title("📸 맞춤형 스킨케어 추천 앱")
 
-# 1. 피부 타입 선택
-skin_type = st.selectbox("내 피부 타입을 선택하세요", ["건성", "지성", "복합성", "민감성"])
+# 세션 상태 초기화
+if "page" not in st.session_state:
+    st.session_state.page = "input"
 
-# 2. 추가 텍스트 입력
-additional_info = st.text_area("추가로 알려주고 싶은 피부 고민이나 민감 부위", placeholder="예: 왼쪽 볼 예민, 턱 좁쌀 여드름")
+# 제품 데이터 예시
+product_info = {
+    "라로슈포제 시카 토너": {
+        "link": "https://www.oliveyoung.co.kr/product?pid=example1",
+        "usage": "아침/저녁 사용, 2~3개월 사용 가능",
+        "caution": "민감 피부는 패치 테스트 권장"
+    },
+    "닥터자르트 시카페어 크림": {
+        "link": "https://www.oliveyoung.co.kr/product?pid=example2",
+        "usage": "아침/저녁, 소량 사용",
+        "caution": "상처 난 부위 직접 사용 주의"
+    },
+    "라네즈 크림스킨 토너": {
+        "link": "https://www.oliveyoung.co.kr/product?pid=example3",
+        "usage": "아침/저녁, 화장솜에 적당량 사용",
+        "caution": "과다 사용 시 끈적임 발생"
+    },
+    "아벤느 시칼파트 크림": {
+        "link": "https://www.oliveyoung.co.kr/product?pid=example4",
+        "usage": "건조 부위 중심으로 사용, 1~2개월 사용 가능",
+        "caution": "눈가 직접 사용 주의"
+    },
+    "약국 연고": {
+        "link": "https://www.oliveyoung.co.kr/product?pid=example5",
+        "usage": "트러블 부위 점사용",
+        "caution": "장기간 사용 시 피부 자극 가능"
+    }
+}
 
-# 3. 사진 업로드 (선택)
-uploaded_file = st.file_uploader("피부 사진을 업로드하세요 (선택)", type=["jpg", "png", "jpeg"])
-
-# 4. AI 분석 버튼
-if st.button("AI 피부 분석"):
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        st.image(image, caption="업로드한 피부 사진", use_column_width=True)
+# --- 입력 화면 ---
+if st.session_state.page == "input":
+    skin_type = st.selectbox("내 피부 타입을 선택하세요", ["건성", "지성", "복합성", "민감성"])
+    additional_info = st.text_area("추가로 알려주고 싶은 피부 고민이나 민감 부위", placeholder="예: 왼쪽 볼 예민, 턱 좁쌀 여드름")
+    uploaded_file = st.file_uploader("피부 사진을 업로드하세요 (선택)", type=["jpg", "png", "jpeg"])
+    
+    if st.button("AI 피부 분석 & 추천"):
+        if uploaded_file is not None:
+            image = Image.open(uploaded_file)
+            st.session_state.skin_status = "건조 + 각질 + 일부 붉은기"
+            st.session_state.image = image
+        else:
+            st.session_state.skin_status = "입력 정보 기반 예시 분석"
+            st.session_state.image = None
         
-        # --- 실제 AI 분석 연결 가능 ---
-        st.subheader("✨ AI 분석 결과 (예시)")
-        st.write("- 피부 상태: 건조 + 각질 + 일부 붉은기")
-    else:
-        st.warning("사진을 업로드하지 않으셨습니다. 직접 입력한 정보를 기반으로 분석합니다.")
-        st.write("- 피부 상태: 입력 정보 기반 예시 분석")
+        st.session_state.additional_info = additional_info
+        st.session_state.skin_type = skin_type
+        st.session_state.page = "result"
+        st.experimental_rerun()
 
-# 5. 추천 제품 버튼
-if st.button("추천 제품 보기"):
+# --- 결과 화면 ---
+elif st.session_state.page == "result":
+    st.subheader("✨ 분석 결과")
+    if st.session_state.image:
+        st.image(st.session_state.image, caption="업로드한 피부 사진", use_column_width=True)
+    st.write(f"- 피부 타입: {st.session_state.skin_type}")
+    st.write(f"- 피부 상태: {st.session_state.skin_status}")
+    st.write(f"- 추가 정보: {st.session_state.additional_info}")
+
+    # --- 추천 제품 ---
     st.subheader("🧴 추천 제품")
-    # 예시 추천 로직
-    if "붉은기" in additional_info or (uploaded_file is not None and "붉은기" in "예시 분석"):
-        st.write("- 시카 토너: 라로슈포제 시카 토너")
-        st.write("- 시카 크림: 닥터자르트 시카페어 크림")
-    elif "각질" in additional_info:
-        st.write("- 각질 케어 토너: 라네즈 크림스킨 토너")
-        st.write("- 수분 크림: 아벤느 시칼파트 크림")
+    recommended = []
+    if "붉은기" in st.session_state.skin_status or "예민" in st.session_state.additional_info:
+        recommended = ["라로슈포제 시카 토너", "닥터자르트 시카페어 크림", "약국 연고"]
+    elif "각질" in st.session_state.skin_status or "각질" in st.session_state.additional_info:
+        recommended = ["라네즈 크림스킨 토너", "아벤느 시칼파트 크림"]
     else:
-        st.write("- 기본 보습 토너/크림 추천")
+        recommended = ["라로슈포제 시카 토너", "아벤느 시칼파트 크림"]
+
+    for p in recommended:
+        info = product_info[p]
+        st.markdown(f"**[{p}]({info['link']})**")
+        st.write(f"- 사용 기간: {info['usage']}")
+        st.write(f"- 유의 사항: {info['caution']}")
+        st.write("---")
+    
+    if st.button("🔙 이전 화면으로 돌아가기"):
+        st.session_state.page = "input"
+        st.experimental_rerun()
