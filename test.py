@@ -65,7 +65,15 @@ if st.session_state.page == "input":
     st.title("AI 피부 분석 & 스킨케어 추천")
 
     skin_type = st.radio("피부 타입을 선택하세요", ["건성", "지성", "민감성", "복합성"])
-    skin_status = st.multiselect("현재 피부 상태를 선택하세요", ["붉은기", "각질", "여드름", "민감함"])
+
+    st.write("### 피부 상태를 선택하거나 입력하세요")
+    selected_status = st.multiselect("피부 상태 선택", ["붉은기", "각질", "여드름", "민감함"])
+    custom_status = st.text_input("추가 입력 (쉼표로 구분)", placeholder="예: 트러블, 홍조")
+
+    # 입력값을 리스트로 변환 후 합치기
+    custom_status_list = [s.strip() for s in custom_status.split(",") if s.strip()]
+    skin_status = selected_status + custom_status_list
+
     additional_info = st.text_area("추가로 알려주고 싶은 피부 고민", placeholder="예: 코 주변이 많이 건조해요.")
 
     photo = st.file_uploader("피부 사진을 업로드하세요 (선택사항)", type=["jpg", "png"])
@@ -76,7 +84,7 @@ if st.session_state.page == "input":
         st.session_state.skin_status = skin_status
         st.session_state.additional_info = additional_info
         st.session_state.page = "result"
-        st.experimental_rerun()
+        st.rerun()
 
 elif st.session_state.page == "result":
     st.title("추천 결과")
@@ -113,4 +121,4 @@ elif st.session_state.page == "result":
     with tab4:
         if st.button("다시 입력하기"):
             st.session_state.page = "input"
-            st.experimental_rerun()
+            st.rerun()
