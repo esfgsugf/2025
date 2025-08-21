@@ -53,16 +53,19 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # session_state 초기화
-for key in ["page", "skin_status", "skin_analysis_details", "skin_type"]:
+default_keys = {
+    "page": "input",
+    "skin_status": [],
+    "skin_analysis_details": {},
+    "skin_type": "",
+    "main_concern_radio": "",
+    "other_concerns_input": "",
+    "uploaded_image": None
+}
+
+for key, value in default_keys.items():
     if key not in st.session_state:
-        if key == "page":
-            st.session_state[key] = "input"
-        elif key == "skin_status":
-            st.session_state[key] = []
-        elif key == "skin_analysis_details":
-            st.session_state[key] = {}
-        else:
-            st.session_state[key] = ""
+        st.session_state[key] = value
 
 # 피부 상태 원인 & 팁
 skin_tips = {
@@ -115,7 +118,7 @@ def simple_skin_analysis(image: Image.Image = None):
                 "tip": "진정 & 살균 제품 사용, 손으로 짜지 않기"
             }
     else:
-        if st.session_state.get('main_concern_radio') and st.session_state.main_concern_radio != "없음":
+        if st.session_state.main_concern_radio and st.session_state.main_concern_radio != "없음":
             results.append(st.session_state.main_concern_radio)
             analysis_details[st.session_state.main_concern_radio] = {
                 "state": f"선택하신 고민: {st.session_state.main_concern_radio}",
@@ -128,20 +131,19 @@ def simple_skin_analysis(image: Image.Image = None):
 if st.session_state.page == "input":
     st.title("💧 나만의 스킨케어 코치 💧")
 
-    skin_type = st.selectbox("피부 타입 선택", ["건성", "지성", "민감성", "복합성", "수부지"], key="skin_type_select")
+    skin_type = st.selectbox("피부 타입 선택", ["건성", "지성", "민감성", "복합성", "수부지"], key="skin_type_select_input")
+    main_concern = st.radio("가장 고민되는 피부 상태 선택", ["붉은기(홍조)", "각질", "트러블(여드름)", "민감함", "없음"], key="main_concern_radio_input")
+    other_concerns = st.text_input("기타 고민 입력", placeholder="예: 모공, 탄력 저하, 잡티 등", key="other_concerns_input_field")
+    uploaded_image = st.file_uploader("피부 사진 업로드 (선택)", type=["png","jpg","jpeg"], key="upload_image_input")
 
-    st.write("### 피부 고민 알려주기")
-    main_concern = st.radio("가장 고민되는 피부 상태 선택", ["붉은기(홍조)", "각질", "트러블(여드름)", "민감함", "없음"], key="main_concern_radio")
-
-    other_concerns = st.text_input("기타 고민 입력", placeholder="예: 모공, 탄력 저하, 잡티 등", key="other_concerns_input")
-
-    uploaded_image = st.file_uploader("피부 사진 업로드 (선택)", type=["png","jpg","jpeg"], key="upload_image")
-
-    if st.button("다음", key="next_button"):
+    if st.button("다음", key="next_button_input"):
         image = Image.open(uploaded_image) if uploaded_image else None
         ai_results, analysis_details = simple_skin_analysis(image)
         st.session_state.skin_status = ai_results
         st.session_state.skin_analysis_details = analysis_details
         st.session_state.skin_type = skin_type
+        st.session_state.main_concern_radio = main_concern
+        st.session_state.other_concerns_input = other_concerns
+        st.session_state.uploaded_image = uploaded_image
         st.session_state.page = "result"
         st.experimental_rerun()
