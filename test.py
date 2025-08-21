@@ -1,48 +1,21 @@
 import streamlit as st
 from PIL import Image
 
-# --- 페이지 설정 ---
+# 페이지 설정
 st.set_page_config(page_title="맞춤형 스킨케어 추천", layout="centered")
 st.title("📸 맞춤형 스킨케어 추천 앱")
 
-# --- CSS 스타일 (배경 + 버튼 꾸미기) ---
-st.markdown("""
-<style>
-.stApp {
-    background-color: #e0f7fa;
-    background-image: url('https://em-content.zobj.net/thumbs/240/apple/354/water-wave_1f30a.png');
-    background-repeat: no-repeat;
-    background-position: bottom right;
-    background-size: 150px 150px;
-    font-family: 'Helvetica', sans-serif;
-}
-
-div.stButton > button:first-child {
-    background-color: #4fc3f7;
-    color: #ffffff;
-    border-radius: 8px;
-    padding: 0.3em 0.8em;
-    font-weight: bold;
-    font-size: 14px;
-    transition: 0.3s;
-}
-div.stButton > button:first-child:hover {
-    background-color: #29b6f6;
-}
-
-.stMarkdown {
-    background-color: rgba(255,255,255,0.8);
-    padding: 1em;
-    border-radius: 15px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-}
-</style>
-""", unsafe_allow_html=True)
-
 # --- 세션 상태 초기화 ---
-for key, default in [("page", "input"), ("skin_status", ""), ("image", None), ("additional_info", ""), ("skin_type", "")]:
-    if key not in st.session_state:
-        st.session_state[key] = default
+if "page" not in st.session_state:
+    st.session_state.page = "input"
+if "skin_status" not in st.session_state:
+    st.session_state.skin_status = ""
+if "image" not in st.session_state:
+    st.session_state.image = None
+if "additional_info" not in st.session_state:
+    st.session_state.additional_info = ""
+if "skin_type" not in st.session_state:
+    st.session_state.skin_type = ""
 
 # --- 제품 데이터 ---
 product_info = {
@@ -77,7 +50,7 @@ product_info = {
 if st.session_state.page == "input":
     skin_type = st.selectbox(
         "내 피부 타입을 선택하세요",
-        ["건성", "지성", "복합성", "민감성", "수부지"]
+        ["건성", "지성", "복합성", "민감성"]
     )
 
     additional_info = st.text_area(
@@ -134,3 +107,4 @@ if st.session_state.page == "result":
 
     if st.button("🔙 이전 화면으로 돌아가기"):
         st.session_state.page = "input"
+
