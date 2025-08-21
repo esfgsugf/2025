@@ -1,109 +1,53 @@
-import streamlit as st
-from PIL import Image
-
-# 페이지 설정
-st.set_page_config(page_title="맞춤형 스킨케어 추천", layout="centered")
-st.title("📸 맞춤형 스킨케어 추천 앱")
-
-# --- 세션 상태 초기화 ---
-if "page" not in st.session_state:
-    st.session_state.page = "input"
-if "skin_status" not in st.session_state:
-    st.session_state.skin_status = ""
-if "image" not in st.session_state:
-    st.session_state.image = None
-if "additional_info" not in st.session_state:
-    st.session_state.additional_info = ""
-if "skin_type" not in st.session_state:
-    st.session_state.skin_type = ""
-
-# --- 제품 데이터 ---
-product_info = {
-    "라로슈포제 시카 토너": {
-        "link": "https://www.oliveyoung.co.kr/product?pid=example1",
-        "usage": "아침/저녁 사용, 2~3개월 사용 가능",
-        "caution": "민감 피부는 패치 테스트 권장"
+# 피부 증상별 원인과 관리 팁
+skin_tips = {
+    "붉은기": {
+        "cause": "피부 장벽 약화, 알러지 반응, 자외선 노출",
+        "tip": "저자극 진정 라인 사용, 자외선 차단 철저"
     },
-    "닥터자르트 시카페어 크림": {
-        "link": "https://www.oliveyoung.co.kr/product?pid=example2",
-        "usage": "아침/저녁, 소량 사용",
-        "caution": "상처 난 부위 직접 사용 주의"
-    },
-    "라네즈 크림스킨 토너": {
-        "link": "https://www.oliveyoung.co.kr/product?pid=example3",
-        "usage": "아침/저녁, 화장솜에 적당량 사용",
-        "caution": "과다 사용 시 끈적임 발생"
-    },
-    "아벤느 시칼파트 크림": {
-        "link": "https://www.oliveyoung.co.kr/product?pid=example4",
-        "usage": "건조 부위 중심으로 사용, 1~2개월 사용 가능",
-        "caution": "눈가 직접 사용 주의"
-    },
-    "약국 연고": {
-        "link": "https://www.oliveyoung.co.kr/product?pid=example5",
-        "usage": "트러블 부위 점사용",
-        "caution": "장기간 사용 시 피부 자극 가능"
+    "각질": {
+        "cause": "피부 수분 부족, 턴오버 지연",
+        "tip": "각질 제거는 주 1회 이하, 수분 크림 충분히 사용"
     }
 }
 
-# --- 입력 화면 ---
-if st.session_state.page == "input":
-    skin_type = st.selectbox(
-        "내 피부 타입을 선택하세요",
-        ["건성", "지성", "복합성", "민감성"]
-    )
+# 피부 타입별 유튜버 추천
+youtubers = {
+    "건성": [
+        {"name": "Arang", "link": "https://www.youtube.com/@arang"},
+        {"name": "Hoonion", "link": "https://www.youtube.com/@hoonion"}
+    ],
+    "지성": [
+        {"name": "Minicar", "link": "https://www.youtube.com/@minicar"}
+    ],
+    "민감성": [
+        {"name": "Heizle", "link": "https://www.youtube.com/@heizle"}
+    ],
+    "복합성": [
+        {"name": "Director Pi", "link": "https://www.youtube.com/@directorpi"}
+    ]
+}
 
-    additional_info = st.text_area(
-        "추가로 알려주고 싶은 피부 고민이나 민감 부위",
-        placeholder="예: 왼쪽 볼 예민, 턱 좁쌀 여드름"
-    )
+# 결과 화면에서 탭 구성
+tab1, tab2, tab3, tab4 = st.tabs(["추천 제품", "피부 원인 & 팁", "유튜버 추천", "다시 입력"])
 
-    uploaded_file = st.file_uploader(
-        "피부 사진을 업로드하세요 (선택)",
-        type=["jpg", "png", "jpeg"]
-    )
+with tab1:
+    st.subheader("추천 제품")
+    # 제품 리스트 출력 (기존 코드 활용)
 
-    if st.button("AI 피부 분석 & 추천"):
-        st.session_state.skin_type = skin_type
-        st.session_state.additional_info = additional_info
+with tab2:
+    st.subheader("피부 증상 원인 & 관리 팁")
+    for symptom, data in skin_tips.items():
+        if symptom in st.session_state.skin_status or symptom in st.session_state.additional_info:
+            st.markdown(f"### {symptom}")
+            st.write(f"**원인:** {data['cause']}")
+            st.write(f"**관리 팁:** {data['tip']}")
+            st.write("---")
 
-        if uploaded_file is not None:
-            st.session_state.image = Image.open(uploaded_file)
-            st.session_state.skin_status = "건조 + 각질 + 일부 붉은기"
-        else:
-            st.session_state.image = None
-            st.session_state.skin_status = "입력 정보 기반 예시 분석"
+with tab3:
+    st.subheader("추천 유튜버 채널")
+    for yt in youtubers.get(st.session_state.skin_type, []):
+        st.markdown(f"- [{yt['name']}]({yt['link']})")
 
-        st.session_state.page = "result"
-
-# --- 결과 화면 ---
-if st.session_state.page == "result":
-    st.subheader("✨ 분석 결과")
-    
-    if st.session_state.image is not None:
-        st.image(st.session_state.image, caption="업로드한 피부 사진", use_column_width=True)
-
-    st.write(f"- 피부 타입: {st.session_state.skin_type}")
-    st.write(f"- 피부 상태: {st.session_state.skin_status}")
-    st.write(f"- 추가 정보: {st.session_state.additional_info}")
-
-    # --- 추천 제품 ---
-    st.subheader("🧴 추천 제품")
-    recommended = []
-
-    if "붉은기" in st.session_state.skin_status or "예민" in st.session_state.additional_info:
-        recommended = ["라로슈포제 시카 토너", "닥터자르트 시카페어 크림", "약국 연고"]
-    elif "각질" in st.session_state.skin_status or "각질" in st.session_state.additional_info:
-        recommended = ["라네즈 크림스킨 토너", "아벤느 시칼파트 크림"]
-    else:
-        recommended = ["라로슈포제 시카 토너", "아벤느 시칼파트 크림"]
-
-    for p in recommended:
-        info = product_info[p]
-        st.markdown(f"**[{p}]({info['link']})**")
-        st.write(f"- 사용 기간: {info['usage']}")
-        st.write(f"- 유의 사항: {info['caution']}")
-        st.write("---")
-
-    if st.button("🔙 이전 화면으로 돌아가기"):
+with tab4:
+    if st.button("다시 입력하기"):
         st.session_state.page = "input"
