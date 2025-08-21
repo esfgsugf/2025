@@ -1,23 +1,22 @@
 import streamlit as st
 from PIL import Image
-import numpy as np
-import random
 
 # --- 페이지 설정 ---
-st.set_page_config(page_title="💧 나만의 스킨케어 코치 💧", layout="centered")
+st.set_page_config(page_title="맞춤형 스킨케어 추천", layout="centered")
+st.title("📸 맞춤형 스킨케어 추천 앱")
 
-# --- CSS 스타일 ---
+# --- CSS 스타일 (배경 + 버튼 꾸미기) ---
 st.markdown("""
 <style>
 .stApp {
     background-color: #e0f7fa;
-    font-family: 'Helvetica', sans-serif;
     background-image: url('https://em-content.zobj.net/thumbs/240/apple/354/water-wave_1f30a.png');
     background-repeat: no-repeat;
     background-position: bottom right;
     background-size: 150px 150px;
-    color: #333333;
+    font-family: 'Helvetica', sans-serif;
 }
+
 div.stButton > button:first-child {
     background-color: #4fc3f7;
     color: #ffffff;
@@ -30,16 +29,7 @@ div.stButton > button:first-child {
 div.stButton > button:first-child:hover {
     background-color: #29b6f6;
 }
-.stTabs [role="tab"] {
-    font-weight: bold;
-    color: #0288d1;
-    padding: 0.4em 1em;
-    border-radius: 8px;
-}
-.stTabs [role="tab"]:hover {
-    color: #81d4fa;
-    background-color: rgba(135,206,250,0.1);
-}
+
 .stMarkdown {
     background-color: rgba(255,255,255,0.8);
     padding: 1em;
@@ -50,119 +40,97 @@ div.stButton > button:first-child:hover {
 """, unsafe_allow_html=True)
 
 # --- 세션 상태 초기화 ---
-default_keys = {
-    "page": "input",
-    "skin_status": [],
-    "skin_analysis_details": {},
-    "skin_type": "",
-    "main_concern_radio": "",
-    "other_concerns_input": "",
-    "uploaded_image": None
-}
-for key, value in default_keys.items():
+for key, default in [("page", "input"), ("skin_status", ""), ("image", None), ("additional_info", ""), ("skin_type", "")]:
     if key not in st.session_state:
-        st.session_state[key] = value
+        st.session_state[key] = default
 
-# --- 피부 상태 원인 & 팁 ---
-skin_tips = {
-    "붉은기(홍조)": {"cause": "피부 장벽 약화, 외부 자극, 자외선 노출 가능", "tip": "진정 크림 사용, 자외선 차단 필수"},
-    "각질": {"cause": "수분 부족, 턴오버 지연", "tip": "주 1회 이하 각질 제거, 보습 크림 충분히 사용"},
-    "트러블(여드름)": {"cause": "피지 과다, 세균 증식, 스트레스", "tip": "진정 및 살균 제품 사용, 손으로 짜지 않기"},
-    "민감함": {"cause": "피부 장벽 손상, 알러지 반응", "tip": "저자극, 무향 제품 사용"}
+# --- 제품 데이터 ---
+product_info = {
+    "라로슈포제 시카 토너": {
+        "link": "https://www.oliveyoung.co.kr/product?pid=example1",
+        "usage": "아침/저녁 사용, 2~3개월 사용 가능",
+        "caution": "민감 피부는 패치 테스트 권장"
+    },
+    "닥터자르트 시카페어 크림": {
+        "link": "https://www.oliveyoung.co.kr/product?pid=example2",
+        "usage": "아침/저녁, 소량 사용",
+        "caution": "상처 난 부위 직접 사용 주의"
+    },
+    "라네즈 크림스킨 토너": {
+        "link": "https://www.oliveyoung.co.kr/product?pid=example3",
+        "usage": "아침/저녁, 화장솜에 적당량 사용",
+        "caution": "과다 사용 시 끈적임 발생"
+    },
+    "아벤느 시칼파트 크림": {
+        "link": "https://www.oliveyoung.co.kr/product?pid=example4",
+        "usage": "건조 부위 중심으로 사용, 1~2개월 사용 가능",
+        "caution": "눈가 직접 사용 주의"
+    },
+    "약국 연고": {
+        "link": "https://www.oliveyoung.co.kr/product?pid=example5",
+        "usage": "트러블 부위 점사용",
+        "caution": "장기간 사용 시 피부 자극 가능"
+    }
 }
 
-# --- 유튜버 채널명만 표시 ---
-youtubers = {
-    "건성": ["인씨(InC)", "유트루(Yoo True)"],
-    "지성": ["회사원A"],
-    "민감성": ["슈히"],
-    "복합성": ["제나"],
-    "수부지": ["인씨(InC)", "유트루(Yoo True)", "제나"]
-}
-
-# --- AI 피부 분석 함수 ---
-def simple_skin_analysis(image: Image.Image = None):
-    results = []
-    analysis_details = {}
-
-    if image:
-        img = image.resize((100,100))
-        arr = np.array(img)
-        red_mean = arr[:,:,0].mean()
-        green_mean = arr[:,:,1].mean()
-        blue_mean = arr[:,:,2].mean()
-
-        if red_mean > green_mean + 15:
-            results.append("붉은기(홍조)")
-            analysis_details["붉은기(홍조)"] = {
-                "state": "얼굴이 붉게 올라오고 있어요.",
-                "cause": "피부 장벽 약화 또는 자외선/알러지 영향 가능",
-                "tip": "진정 크림 사용, 자외선 차단, 세안 부드럽게"
-            }
-        if random.random() > 0.7:
-            results.append("각질")
-            analysis_details["각질"] = {
-                "state": "피부가 거칠고 푸석하게 느껴져요.",
-                "cause": "수분 부족, 피부 턴오버 지연",
-                "tip": "각질 제거는 주 1회 이하, 보습 크림 충분히"
-            }
-        if random.random() > 0.8:
-            results.append("트러블(여드름)")
-            analysis_details["트러블(여드름)"] = {
-                "state": "작은 여드름이 여기저기 보여요.",
-                "cause": "피지 과다, 세균 증식, 스트레스",
-                "tip": "진정 & 살균 제품 사용, 손으로 짜지 않기"
-            }
-    else:
-        if st.session_state.main_concern_radio and st.session_state.main_concern_radio != "없음":
-            results.append(st.session_state.main_concern_radio)
-            analysis_details[st.session_state.main_concern_radio] = {
-                "state": f"선택하신 고민: {st.session_state.main_concern_radio}",
-                "cause": skin_tips.get(st.session_state.main_concern_radio, {}).get('cause',''),
-                "tip": skin_tips.get(st.session_state.main_concern_radio, {}).get('tip','')
-            }
-    return results, analysis_details
-
-# --- 입력 페이지 ---
+# --- 입력 화면 ---
 if st.session_state.page == "input":
-    st.title("💧 나만의 스킨케어 코치 💧")
-    skin_type = st.selectbox("피부 타입 선택", ["건성", "지성", "민감성", "복합성", "수부지"], key="skin_type_select_input")
-    main_concern = st.radio("가장 고민되는 피부 상태 선택", ["붉은기(홍조)", "각질", "트러블(여드름)", "민감함", "없음"], key="main_concern_radio_input")
-    other_concerns = st.text_input("기타 고민 입력", placeholder="예: 모공, 탄력 저하, 잡티 등", key="other_concerns_input_field")
-    uploaded_image = st.file_uploader("피부 사진 업로드 (선택)", type=["png","jpg","jpeg"], key="upload_image_input")
+    skin_type = st.selectbox(
+        "내 피부 타입을 선택하세요",
+        ["건성", "지성", "복합성", "민감성", "수부지"]
+    )
 
-    next_clicked = st.button("다음", key="next_button_input")
-    if next_clicked:
-        image = Image.open(uploaded_image) if uploaded_image else None
-        ai_results, analysis_details = simple_skin_analysis(image)
-        st.session_state.skin_status = ai_results
-        st.session_state.skin_analysis_details = analysis_details
+    additional_info = st.text_area(
+        "추가로 알려주고 싶은 피부 고민이나 민감 부위",
+        placeholder="예: 왼쪽 볼 예민, 턱 좁쌀 여드름"
+    )
+
+    uploaded_file = st.file_uploader(
+        "피부 사진을 업로드하세요 (선택)",
+        type=["jpg", "png", "jpeg"]
+    )
+
+    if st.button("AI 피부 분석 & 추천"):
         st.session_state.skin_type = skin_type
-        st.session_state.main_concern_radio = main_concern
-        st.session_state.other_concerns_input = other_concerns
-        st.session_state.uploaded_image = uploaded_image
+        st.session_state.additional_info = additional_info
+
+        if uploaded_file is not None:
+            st.session_state.image = Image.open(uploaded_file)
+            st.session_state.skin_status = "건조 + 각질 + 일부 붉은기"
+        else:
+            st.session_state.image = None
+            st.session_state.skin_status = "입력 정보 기반 예시 분석"
+
         st.session_state.page = "result"
 
-# --- 결과 페이지 ---
+# --- 결과 화면 ---
 if st.session_state.page == "result":
-    st.title("💧 스킨케어 분석 결과 💧")
-    st.subheader(f"피부 타입: {st.session_state.skin_type}")
+    st.subheader("✨ 분석 결과")
+    
+    if st.session_state.image is not None:
+        st.image(st.session_state.image, caption="업로드한 피부 사진", use_column_width=True)
 
-    st.subheader("주요 피부 고민")
-    if st.session_state.skin_status:
-        for concern in st.session_state.skin_status:
-            detail = st.session_state.skin_analysis_details.get(concern, {})
-            st.markdown(f"**{concern}**")
-            st.write(f"- 상태: {detail.get('state','')}")
-            st.write(f"- 원인: {detail.get('cause','')}")
-            st.write(f"- 관리 팁: {detail.get('tip','')}")
-            st.write("---")
+    st.write(f"- 피부 타입: {st.session_state.skin_type}")
+    st.write(f"- 피부 상태: {st.session_state.skin_status}")
+    st.write(f"- 추가 정보: {st.session_state.additional_info}")
+
+    # --- 추천 제품 ---
+    st.subheader("🧴 추천 제품")
+    recommended = []
+
+    if "붉은기" in st.session_state.skin_status or "예민" in st.session_state.additional_info:
+        recommended = ["라로슈포제 시카 토너", "닥터자르트 시카페어 크림", "약국 연고"]
+    elif "각질" in st.session_state.skin_status or "각질" in st.session_state.additional_info:
+        recommended = ["라네즈 크림스킨 토너", "아벤느 시칼파트 크림"]
     else:
-        st.write("선택하신 고민이 없습니다.")
+        recommended = ["라로슈포제 시카 토너", "아벤느 시칼파트 크림"]
 
-    st.subheader("추천 유튜버 채널")
-    for yt in youtubers.get(st.session_state.skin_type, []):
-        st.write(f"- {yt}")
+    for p in recommended:
+        info = product_info[p]
+        st.markdown(f"**[{p}]({info['link']})**")
+        st.write(f"- 사용 기간: {info['usage']}")
+        st.write(f"- 유의 사항: {info['caution']}")
+        st.write("---")
 
-    if st.button("다시 입력하기"):
+    if st.button("🔙 이전 화면으로 돌아가기"):
         st.session_state.page = "input"
