@@ -84,7 +84,7 @@ def simple_skin_analysis(image: Image.Image = None):
     results = []
     analysis_details = {}
 
-    # 사진이 없는 경우 랜덤으로 추천
+    # 사진이 없는 경우에도 선택값 기반으로 분석
     if image:
         img = image.resize((100,100))
         arr = np.array(img)
@@ -114,7 +114,6 @@ def simple_skin_analysis(image: Image.Image = None):
                 "tip": "진정 & 살균 제품 사용, 손으로 짜지 않기"
             }
     else:
-        # 사진 없이도 기본 선택 값 반영
         if st.session_state.get('main_concern_radio') and st.session_state.main_concern_radio != "없음":
             results.append(st.session_state.main_concern_radio)
             analysis_details[st.session_state.main_concern_radio] = {
@@ -144,3 +143,4 @@ if st.session_state.page == "input":
         st.session_state.skin_analysis_details = analysis_details
         st.session_state.skin_type = skin_type
         st.session_state.page = "result"
+        st.experimental_rerun()
