@@ -1,11 +1,6 @@
 streamlit
-pandas
-Pillow
-requests
-streamlit
 pillow
 numpy
-requests       
-beautifulsoup4 
-openai         
-
+requests
+beautifulsoup4
+openai
