@@ -1,11 +1,52 @@
 import streamlit as st
 from PIL import Image
 
-# 페이지 설정
+# --- 페이지 설정 ---
 st.set_page_config(page_title="맞춤형 스킨케어 추천", layout="centered")
-st.title("📸 맞춤형 스킨케어 추천 앱")
 
-# --- 세션 상태 초기화 ---
+# --- CSS 스타일 (하늘색 배경 + 버튼 디자인 + 배경 이모지) ---
+st.markdown("""
+<style>
+.stApp {
+    background-color: #e0f7fa;
+    font-family: 'Helvetica', sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+
+body:before {
+    content: "🌊💧🌊💧";
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-size: 48px;
+    opacity: 0.2;
+    z-index: -1;
+}
+
+div.stButton > button:first-child {
+    background-color: #4fc3f7;
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 0.3em 0.8em;
+    font-weight: bold;
+    font-size: 14px;
+    transition: 0.3s;
+}
+div.stButton > button:first-child:hover {
+    background-color: #29b6f6;
+}
+
+.stMarkdown {
+    background-color: rgba(255,255,255,0.85);
+    padding: 1em;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+</style>
+""", unsafe_allow_html=True)
+
+# --- 세션 초기화 ---
 if "page" not in st.session_state:
     st.session_state.page = "input"
 if "skin_status" not in st.session_state:
@@ -48,9 +89,12 @@ product_info = {
 
 # --- 입력 화면 ---
 if st.session_state.page == "input":
+    st.title("📸 맞춤형 스킨케어 추천 앱")
+    st.subheader("내 피부 정보를 입력해주세요")
+
     skin_type = st.selectbox(
         "내 피부 타입을 선택하세요",
-        ["건성", "지성", "복합성", "민감성"]
+        ["건성", "지성", "복합성", "민감성", "수부지"]
     )
 
     additional_info = st.text_area(
@@ -63,7 +107,7 @@ if st.session_state.page == "input":
         type=["jpg", "png", "jpeg"]
     )
 
-    if st.button("AI 피부 분석 & 추천"):
+    if st.button("AI 피부 분석 없이 다음"):
         st.session_state.skin_type = skin_type
         st.session_state.additional_info = additional_info
 
@@ -75,6 +119,7 @@ if st.session_state.page == "input":
             st.session_state.skin_status = "입력 정보 기반 예시 분석"
 
         st.session_state.page = "result"
+        st.experimental_rerun()
 
 # --- 결과 화면 ---
 if st.session_state.page == "result":
@@ -107,4 +152,4 @@ if st.session_state.page == "result":
 
     if st.button("🔙 이전 화면으로 돌아가기"):
         st.session_state.page = "input"
-
+        st.experimental_rerun()
