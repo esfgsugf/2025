@@ -10,7 +10,7 @@ st.set_page_config(page_title="나만의 스킨케어 코치", layout="centered"
 st.markdown("""
     <style>
     .stApp {
-        background: linear-gradient(to bottom, #f0fcff, #ffffff);
+        background-color: #e0f7fa;
         color: #333333;
         font-family: 'Helvetica', sans-serif;
         background-image: url('https://em-content.zobj.net/thumbs/240/apple/354/water-wave_1f30a.png');
@@ -53,14 +53,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # session_state 초기화
-if "page" not in st.session_state:
-    st.session_state.page = "input"
-if "skin_status" not in st.session_state:
-    st.session_state.skin_status = []
-if "skin_analysis_details" not in st.session_state:
-    st.session_state.skin_analysis_details = {}
-if "skin_type" not in st.session_state:
-    st.session_state.skin_type = ""
+for key in ["page", "skin_status", "skin_analysis_details", "skin_type"]:
+    if key not in st.session_state:
+        if key == "page":
+            st.session_state[key] = "input"
+        elif key == "skin_status":
+            st.session_state[key] = []
+        elif key == "skin_analysis_details":
+            st.session_state[key] = {}
+        else:
+            st.session_state[key] = ""
 
 # 피부 상태 원인 & 팁
 skin_tips = {
@@ -84,7 +86,6 @@ def simple_skin_analysis(image: Image.Image = None):
     results = []
     analysis_details = {}
 
-    # 사진이 없는 경우에도 선택값 기반으로 분석
     if image:
         img = image.resize((100,100))
         arr = np.array(img)
