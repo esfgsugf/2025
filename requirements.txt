@@ -2,4 +2,10 @@ streamlit
 pandas
 Pillow
 requests
+streamlit
+pillow
+numpy
+requests       
+beautifulsoup4 
+openai         
 
